@@ -1,0 +1,11 @@
+{
+  "id": "sensevoice-int8-2024-07-17",
+  "name": "SenseVoice Small INT8",
+  "engineVersion": "2.0.1",
+  "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+  "sha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e",
+  "downloadBytes": 163002883,
+  "requiredFreeBytes": 470000000,
+  "files": ["model.int8.onnx", "tokens.txt", "LICENSE", "README.md"],
+  "source": "https://k2-fsa.github.io/sherpa/onnx/sense-voice/pretrained.html"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Deck Agent",
+  "author": "Deck Agent contributors",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["agent", "utility"],
+    "description": "在游戏模式中使用 Pi 执行任务，支持多会话和本地语音输入。"
+  }
+}

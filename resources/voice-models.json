@@ -1,0 +1,129 @@
+{
+  "default": "sensevoice-int8",
+  "models": [
+    {
+      "id": "sensevoice-int8",
+      "name": "SenseVoice Small INT8",
+      "description": "中文优先，适合日常中文和中英混说。",
+      "engine": "sensevoice",
+      "repo": "csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17",
+      "revision": "2365baeacb507f821a0c8120fcee3d484dba7a07",
+      "artifacts": [
+        {
+          "name": "model.int8.onnx",
+          "bytes": 239233841,
+          "sha256": "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51"
+        },
+        {
+          "name": "tokens.txt",
+          "bytes": 315894,
+          "sha256": "f449eb28dc567533d7fa59be34e2abca8784f771850c78a47fb731a31429a1dc"
+        }
+      ],
+      "files": [
+        "model.int8.onnx",
+        "tokens.txt"
+      ],
+      "downloadBytes": 239549735,
+      "requiredFreeBytes": 303549735,
+      "source": "https://huggingface.co/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17",
+      "sha256": "25cad1e4e0db85e6267d82ff5103ded05283b6615060d8e05b82c594ee76b33e"
+    },
+    {
+      "id": "whisper-small-int8",
+      "name": "Whisper Small INT8",
+      "description": "多语种识别，模型较大，转写可能需要更长时间。",
+      "engine": "whisper",
+      "repo": "csukuangfj/sherpa-onnx-whisper-small",
+      "revision": "8f3c18b358db4d1f2fc1eae49d75cd20989e4309",
+      "artifacts": [
+        {
+          "name": "small-decoder.int8.onnx",
+          "bytes": 262226114,
+          "sha256": "acad50b5c782696e91b55914cc5ab4f756f1532f76e22aa6fc615f39fb69a8ee"
+        },
+        {
+          "name": "small-encoder.int8.onnx",
+          "bytes": 112442483,
+          "sha256": "4cbe7b22fa9026b843b60a68640c747de05bafb1a11b57edc0e66c232d9f33a9"
+        },
+        {
+          "name": "small-tokens.txt",
+          "bytes": 816730,
+          "sha256": "b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126"
+        }
+      ],
+      "files": [
+        "small-decoder.int8.onnx",
+        "small-encoder.int8.onnx",
+        "small-tokens.txt"
+      ],
+      "downloadBytes": 375485327,
+      "requiredFreeBytes": 439485327,
+      "source": "https://huggingface.co/csukuangfj/sherpa-onnx-whisper-small",
+      "sha256": "f072a37be7f1e614f0999dd17ef05b4ca1dc4101e302d4dd1a8cfa080f09fb52"
+    },
+    {
+      "id": "whisper-base-int8",
+      "name": "Whisper Base INT8",
+      "description": "多语种轻量选项，比 Small 占用更少资源。",
+      "engine": "whisper",
+      "repo": "csukuangfj/sherpa-onnx-whisper-base",
+      "revision": "bb53ee204431c90d314c1cc08d28d23e5b7927cc",
+      "artifacts": [
+        {
+          "name": "base-decoder.int8.onnx",
+          "bytes": 130672026,
+          "sha256": "9759d217388a01b3a4c7c15533201067b48ae819c4daafc8624e64b9409dc02d"
+        },
+        {
+          "name": "base-encoder.int8.onnx",
+          "bytes": 29120534,
+          "sha256": "0b8fb1304b6109976038efff5ace81720e00386f3ff6b54ee8c75291ca0a1e11"
+        },
+        {
+          "name": "base-tokens.txt",
+          "bytes": 816730,
+          "sha256": "b34b360dbb493e781e479794586d661700670d65564001f23024971d1f2fa126"
+        }
+      ],
+      "files": [
+        "base-decoder.int8.onnx",
+        "base-encoder.int8.onnx",
+        "base-tokens.txt"
+      ],
+      "downloadBytes": 160609290,
+      "requiredFreeBytes": 224609290,
+      "source": "https://huggingface.co/csukuangfj/sherpa-onnx-whisper-base",
+      "sha256": "656896cd3b084527247f985982e74608565278c6b5b5c17f1c3037ffe2ed55d2"
+    },
+    {
+      "id": "paraformer-zh-yue-en-int8",
+      "name": "Paraformer 中英粤 INT8",
+      "description": "支持普通话、粤语和英语，可识别中英混说。",
+      "engine": "paraformer",
+      "repo": "csukuangfj/sherpa-onnx-paraformer-trilingual-zh-cantonese-en",
+      "revision": "8d90151338178bb433354c9fb677bd3acb8023cd",
+      "artifacts": [
+        {
+          "name": "model.int8.onnx",
+          "bytes": 244684152,
+          "sha256": "eb3cdd288f535cf73258f491cdd7d68ad5a00aee135c0bba4c0884ea8d926144"
+        },
+        {
+          "name": "tokens.txt",
+          "bytes": 118931,
+          "sha256": "8e4593d7a2eb2404ff82976b5494265e9a06283ca4d5e8605bf7b4fed557a492"
+        }
+      ],
+      "files": [
+        "model.int8.onnx",
+        "tokens.txt"
+      ],
+      "downloadBytes": 244803083,
+      "requiredFreeBytes": 308803083,
+      "source": "https://huggingface.co/csukuangfj/sherpa-onnx-paraformer-trilingual-zh-cantonese-en",
+      "sha256": "84b4052044ef0dc84bf941274be0fe710ae09c010c18343e705227787c7d1733"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+name: 问题反馈 / Bug report
+description: 安装、任务、界面或设备兼容问题
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "请先检查日志和截图，遮盖 API Key、用户名、IP、私人路径和会话内容。普通问题直接填写此表；涉及数据泄露或权限绕过的漏洞，请先阅读 docs/SECURITY.md。"
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境 / Environment
+      description: 插件版本及构建号、SteamOS 版本、Decky 版本、LCD/OLED；是否在游戏 overlay 内。
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 如何复现 / Steps to reproduce
+      description: 按顺序描述操作、预期结果与实际结果；注明大致发生时间。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 错误提示与脱敏证据 / Redacted evidence
+      description: 可附错误文字、必要日志片段或截图。不要上传 auth.json 或整个数据目录。

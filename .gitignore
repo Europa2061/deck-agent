@@ -1,0 +1,68 @@
+# 依赖与本机构建运行时
+node_modules/
+runtime/node_modules/
+runtime/node/
+runtime/stt/
+
+# 构建、打包与运行时生成文件
+/dist/
+/out/
+runtime/build-info.json
+runtime/symlinks.json
+runtime/executables.json
+
+# 本地开发数据（可能包含个人会话或配置）
+/.dev-data/
+
+# 外部参考仓库（各自保留独立 Git 历史）
+/references/
+
+# Python 缓存、测试缓存与虚拟环境
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# 测试与覆盖率输出
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+
+# 日志与本地配置
+*.log
+.env
+.env.*
+!.env.example
+
+# 编辑器与操作系统文件
+.DS_Store
+.idea/
+.vscode/
+
+
+# 本地项目规则与内部调研、设计和过程记录
+/AGENTS.md
+/.internal/
+
+# Agent-local instructions, credentials and private device data
+AGENTS.md
+CLAUDE.md
+.codex/
+.agents/
+.aws/
+.ssh/
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+auth.json
+credentials*.json
+*.sqlite
+*.sqlite3
+*.sqlite3-*
