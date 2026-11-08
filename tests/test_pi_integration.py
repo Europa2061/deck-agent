@@ -166,3 +166,105 @@ export default async function(pi) {
         self.assertEqual(response["disposition"], "handled")
         self.assertTrue(any(e.get("message") == "cancelled" for e in self.events))
         self.assertEqual(self.service.storage.session(session_id)["status"], "idle")
+
+    async def test_player_tools_use_real_cli_and_builtin_skills_are_discoverable(self):
+        environment = self.service.environment
+        self.service.environment = lambda agent_dir=None: {
+            **environment(agent_dir), 'DECK_AGENT_EMBEDDED_PYTHON': '1',
+            'PYTHONHOME': str(self.directory / 'missing-python-home'),
+            '_PYI_APPLICATION_HOME_DIR': str(self.directory / 'missing-pyinstaller-home'),
+        }
+        target = self.directory / 'player-save.sav'
+        target.write_text('test progress')
+        import zipfile
+        archive = self.directory / 'sample-plugin.zip'
+        with zipfile.ZipFile(archive, 'w') as stream:
+            stream.writestr('sample/plugin.json', json.dumps({'name': 'Test Sample', 'author': 'Test'}))
+            stream.writestr('sample/package.json', json.dumps({'version': '1.0.0'}))
+            stream.writestr('sample/dist/index.js', '')
+        extension = self.service.storage.agent / 'extensions/test.js'
+        source = extension.read_text()
+        start = source.index('  fake.setResponses([')
+        end = source.index('  pi.registerProvider', start)
+        calls = [
+            ('deck_games', {'action': 'list'}),
+            ('deck_saves', {'action': 'path_backup', 'paths': [str(target)], 'label': 'integration'}),
+            ('deck_mods', {'action': 'inspect', 'archive': str(archive)}),
+            ('deck_plugins', {'action': 'prepare', 'archive': str(archive)}),
+        ]
+        source = source[:start] + '  fake.setResponses([\n' + ',\n'.join(
+            '    fauxAssistantMessage(fauxToolCall(' + json.dumps(name) + ',' + json.dumps(params) + "),{stopReason:'toolUse'})" for name, params in calls
+        ) + ",\n    fauxAssistantMessage('玩家工具验证结束')\n  ]);\n" + source[end:]
+        extension.write_text(source)
+        sid = (await self.service.request('create_session', {}))['id']
+        await self.service.request('send', {'sessionId': sid, 'text': '测试内置玩家工具'})
+        await self.wait_for(lambda: sid not in self.service.run_started and self.service.storage.session(sid)['status'] == 'idle')
+        await self.service.reconcile(sid)
+        results = [m for m in self.service.messages[sid] if m.get('role') == 'toolResult']
+        self.assertEqual([r['toolName'] for r in results], [name for name, _ in calls])
+        self.assertFalse(any(r.get('isError') for r in results), results)
+        self.assertTrue(self.service.player_store.list('backup'))
+        self.assertEqual(self.service.player_store.list('plugin-install')[0]['manifest']['name'], 'Test Sample')
+        commands = await self.service.request('commands', {'sessionId': sid})
+        names = {c['name'] for c in commands['commands']}
+        for skill in ('game-care', 'save-care', 'mod-care', 'decky-plugins'):
+            self.assertIn('skill:' + skill, names)
+
+    async def test_builtin_config_tool_waits_for_gui_and_respects_cancel(self):
+        target = self.directory / 'game.ini'
+        target.write_text('quality=high\n')
+        extension = self.service.storage.agent / 'extensions/test.js'
+        source = extension.read_text()
+        start = source.index('  fake.setResponses([')
+        end = source.index('  pi.registerProvider', start)
+        params = {'action': 'config_apply', 'file': str(target), 'old': 'quality=high', 'new': 'quality=medium'}
+        source = source[:start] + "  fake.setResponses([fauxAssistantMessage(fauxToolCall('deck_games'," + json.dumps(params) + "),{stopReason:'toolUse'}),fauxAssistantMessage('已按用户选择处理')]);\n" + source[end:]
+        extension.write_text(source)
+        sid = (await self.service.request('create_session', {}))['id']
+        await self.service.request('send', {'sessionId': sid, 'text': '测试取消配置修改'})
+        await self.wait_for(lambda: bool(self.service.ui_requests.get(sid)))
+        self.assertEqual(target.read_text(), 'quality=high\n')
+        request = next(iter(self.service.ui_requests[sid].values()))
+        self.assertEqual(request['method'], 'confirm')
+        await self.service.request('ui_response', {'sessionId': sid, 'requestId': request['id'], 'value': False})
+        await self.wait_for(lambda: sid not in self.service.run_started)
+        self.assertEqual(target.read_text(), 'quality=high\n')
+        self.assertFalse(self.service.player_store.list('config-backup'))
+
+    async def test_mod_install_confirmation_and_plugin_queue_use_real_tools(self):
+        import zipfile
+        game = self.directory / 'game'
+        game.mkdir()
+        archive = self.directory / 'mod.zip'
+        with zipfile.ZipFile(archive, 'w') as stream:
+            stream.writestr('Mods/demo.txt', 'installed by actual Pi tool')
+        extension = self.service.storage.agent / 'extensions/test.js'
+        source = extension.read_text()
+        start = source.index('  fake.setResponses([')
+        end = source.index('  pi.registerProvider', start)
+        params = {'action': 'install', 'archive': str(archive), 'target': str(game), 'name': 'integration-mod'}
+        source = source[:start] + "  fake.setResponses([fauxAssistantMessage(fauxToolCall('deck_mods'," + json.dumps(params) + "),{stopReason:'toolUse'}),fauxAssistantMessage('文件已部署，等待实际游戏验证')]);\n" + source[end:]
+        extension.write_text(source)
+        sid = (await self.service.request('create_session', {}))['id']
+        await self.service.request('send', {'sessionId': sid, 'text': '测试确认 Mod 部署'})
+        await self.wait_for(lambda: bool(self.service.ui_requests.get(sid)))
+        self.assertFalse((game / 'Mods/demo.txt').exists())
+        pending = next(iter(self.service.ui_requests[sid].values()))
+        await self.service.request('ui_response', {'sessionId': sid, 'requestId': pending['id'], 'value': True})
+        await self.wait_for(lambda: sid not in self.service.run_started)
+        self.assertEqual((game / 'Mods/demo.txt').read_text(), 'installed by actual Pi tool')
+        self.assertEqual(self.service.player_store.list('mod')[0]['status'], 'enabled')
+        from backend.workflows import plugins
+        plugin = self.directory / 'plugin.zip'
+        with zipfile.ZipFile(plugin, 'w') as stream:
+            stream.writestr('sample/plugin.json', json.dumps({'name': 'Player Tools Test'}))
+            stream.writestr('sample/package.json', json.dumps({'version': '1.0.0'}))
+            stream.writestr('sample/dist/index.js', '')
+        record = plugins.prepare(self.service.player_store, {'archive': str(plugin)})
+        plugins.queue(self.service.player_store, record['id'])
+        self.assertEqual((await self.service.snapshot())['pluginInstalls'][0]['name'], 'Player Tools Test')
+        claimed = await self.service.request('player_plugin_claim', {'ticket': record['id']})
+        self.assertEqual(claimed['name'], 'Player Tools Test')
+        self.assertFalse((await self.service.snapshot())['pluginInstalls'])
+        await self.service.request('player_plugin_failed', {'ticket': record['id'], 'error': 'native test failure'})
+        self.assertEqual((await self.service.snapshot())['pluginInstalls'][0]['error'], 'native test failure')

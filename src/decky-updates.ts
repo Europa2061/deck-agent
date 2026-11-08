@@ -11,5 +11,9 @@ export function checkInstaller() { installer(); }
 export async function installUpdate(update: PreparedUpdate) {
   if (!update.artifact.startsWith('file:///') || !/^[a-f0-9]{64}$/.test(update.hash)) throw new Error('安装包信息无效，请重新下载。');
   // UPDATE = 2。只提交请求，保留 Decky 原生确认弹窗，由它负责卸载、替换和重载。
-  await installer().call('utilities/install_plugin', update.artifact, 'Deck Agent', update.version, update.hash, 2);
+  const name = update.name || 'Deck Agent';
+  if (!name.trim() || /[\\/]/.test(name)) throw new Error('插件名称无效。');
+  const kind = update.installType ?? 2;
+  if (![0, 2].includes(kind)) throw new Error('安装类型无效。');
+  await installer().call('utilities/install_plugin', update.artifact, name, update.version, update.hash, kind);
 }

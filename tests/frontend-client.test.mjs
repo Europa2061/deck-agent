@@ -172,5 +172,32 @@ test('更新交接只提交 Decky 原生确认请求，缺少接口时提示手�
     assert.deepEqual(calls, [['utilities/install_plugin', update.artifact, 'Deck Agent', '0.6.0', update.hash, 2]]);
     await assert.rejects(adapter.installUpdate({ ...update, artifact: 'https://example.com/update.zip' }), /无效/);
     assert.equal(calls.length, 1);
+    await adapter.installUpdate({ ...update, name: 'Sample Plugin', installType: 0 });
+    assert.deepEqual(calls[1], ['utilities/install_plugin', update.artifact, 'Sample Plugin', '0.6.0', update.hash, 0]);
   } finally { if (previous === undefined) delete globalThis.DeckyBackend; else globalThis.DeckyBackend = previous; }
+});
+
+
+test('第三方插件交接合并重复点击，原生接口失败后保留可重试请求', async () => {
+  const c = await client(); const b = bridge(5); const original = b.request;
+  const calls = []; let fail = true;
+  b.request = async (action, payload) => {
+    calls.push(action);
+    if (action === 'player_plugin_claim') { await wait(10); return { artifact: 'file:///tmp/sample.zip', name: 'Sample', version: '1.0.0', hash: 'a'.repeat(64), installType: 0 }; }
+    if (action === 'player_plugin_failed') return;
+    return original(action, payload);
+  };
+  b.checkInstaller = () => {};
+  b.installUpdate = async () => { if (fail) throw new Error('native unavailable'); };
+  const dispose = c.configureBridge(b);
+  try {
+    const first = c.installPlayerPlugin('ticket'); const second = c.installPlayerPlugin('ticket');
+    assert.equal(first, second);
+    await assert.rejects(first, /native unavailable/);
+    assert.equal(calls.filter(a => a === 'player_plugin_claim').length, 1);
+    assert.equal(calls.filter(a => a === 'player_plugin_failed').length, 1);
+    fail = false;
+    await c.installPlayerPlugin('ticket');
+    assert.equal(calls.filter(a => a === 'player_plugin_claim').length, 2);
+  } finally { dispose(); }
 });

@@ -14,3 +14,5 @@
 - Markdown: [react-markdown](https://github.com/remarkjs/react-markdown) 10.1.0 and [remark-gfm](https://github.com/remarkjs/remark-gfm) 4.0.1, MIT. See [retained dependency notices](../resources/licenses/markdown-dependencies-LICENSES.txt).
 
 Project-owned source is licensed under the root [MIT license](../LICENSE). npm runtime dependencies retain their own licenses in their package directories; bundling does not relicense them. Model-license declarations were checked on 2026-11-03 and 2026-11-04. Model weights and runtime code follow their respective licenses.
+
+- Ludusavi 0.31.0: downloaded on demand from its [official release](https://github.com/mtkennerly/ludusavi/releases/tag/v0.31.0), not bundled; MIT. Fixed SHA-256 values verify the Linux x64 archive and official legal.zip. The legal archive is retained in plugin data.

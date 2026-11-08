@@ -4,7 +4,7 @@
 
 | 面向读者 | 文档 |
 | --- | --- |
-| 用户 | [安装与首次使用](installation.md) · [权限与隐私](privacy.md) · [更新记录](CHANGELOG.md) |
+| 用户 | [安装与首次使用](installation.md) · [玩家工具流程](player-workflows.md) · [权限与隐私](privacy.md) · [更新记录](CHANGELOG.md) |
 | 开发者 | [开发与构建](development.md) · [调试](debugging.md) · [设备测试](device-test.md) · [发布版本](releasing.md) |
 | 参与者 | [贡献说明](CONTRIBUTING.md) · [安全问题](SECURITY.md) · [第三方来源与许可证](THIRD_PARTY.md) |
 

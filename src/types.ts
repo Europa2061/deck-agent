@@ -34,6 +34,7 @@ export interface Voice {
 }
 export interface LiveTool { id: string; name: string; args: unknown; result?: { content?: Content[] } }
 export interface Snapshot {
+  pluginInstalls?: { ticket: string; name: string; version: string; status: string; error?: string }[];
   newSessionDraft?: string; newSessionModel?: Pick<Session, 'provider' | 'model' | 'thinking'>;
   sessions: Session[]; preferences: Preferences; providers: Provider[];
   runtime: { ready: boolean; error?: string; piVersion: string }; version: string;
@@ -44,4 +45,4 @@ export interface Notice { type: string; title?: string; message?: string; sessio
 export interface Release { current: string; latest: string; available: boolean; notes: string; pageUrl: string; zipUrl?: string; checksumUrl?: string }
 
 export interface UpdateDownload { status: 'idle' | 'downloading' | 'verifying' | 'cancelling' | 'cancelled' | 'ready' | 'error'; downloaded: number; total: number; version?: string; error?: string }
-export interface PreparedUpdate { artifact: string; version: string; hash: string }
+export interface PreparedUpdate { artifact: string; version: string; hash: string; name?: string; installType?: number }

@@ -32,3 +32,10 @@
 - Unify the gray theme and adjust the sidebar/recent conversations.
 - Store new conversations as drafts until their first send.
 - Record native Decky installation, version, and page checks. Physical input, sound, and recording performance were not fully accepted.
+
+## Player workflows (unreleased)
+
+- Four discoverable Skills and dedicated tools cover game troubleshooting/settings, save management, Mods and off-store Decky plugins while retaining Pi's general tools.
+- Add file backups/restores, Mod file ownership and enable/disable/uninstall, Topic-scoped discovery, generic native Decky installation handoff and retry UI.
+- Prepare pinned Ludusavi 0.31.0 on demand with official SHA-256 verification; protect current saves before restore and expose recovery of that protected copy.
+- Support partial-content downloads, retry/resume and reuse of verified cache entries.

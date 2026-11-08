@@ -66,3 +66,7 @@ credentials*.json
 *.sqlite
 *.sqlite3
 *.sqlite3-*
+
+# 内部调研与未发布设计稿
+/docs/research/
+/designs/

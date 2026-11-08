@@ -1,8 +1,14 @@
+<p align="center">
+  <img src="docs/assets/logo.png" width="144" alt="Deck Agent logo">
+</p>
+
 # Deck Agent
 
 Use an AI agent from Steam Deck's game mode to work with files, run commands, and manage multiple conversations. Built on Decky and [Pi](https://github.com/earendil-works/pi), with streaming replies, Skills, extensions, MCP, and optional local speech recognition.
 
 [中文](README.md) · [Installation](docs/installation.en.md) · [Privacy](docs/privacy.en.md) · [Development](docs/development.en.md) · [All docs](docs/index.en.md)
+
+![Deck Agent on Steam Deck: tasks, Decky sidebar, voice, conversations, Skills, and model settings (Chinese UI)](docs/assets/deck-agent-overview.png)
 
 ## Requirements and installation
 
@@ -40,3 +46,5 @@ Report bugs through repository Issues with plugin, SteamOS, and Decky versions a
 Project-owned source is [MIT licensed](LICENSE). Dependencies and voice models retain their respective licenses; see [third-party notices](docs/THIRD_PARTY.en.md). Voice weights are not included in the plugin ZIP.
 
 This is a community project, not affiliated with Valve or the Decky team.
+
+Built-in game troubleshooting, save backups, Mod discovery/deployment and off-store Decky plugin installation: [player workflows](docs/player-workflows.en.md).

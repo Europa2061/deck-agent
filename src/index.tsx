@@ -1,3 +1,4 @@
+import { Logo } from './components/Logo';
 import { addEventListener, callable, definePlugin, removeEventListener, routerHook, toaster } from '@decky/api';
 import { ConfirmModal, Navigation, showModal } from '@decky/ui';
 import { App } from './App';
@@ -49,7 +50,7 @@ export default definePlugin(() => {
   });
   routerHook.addRoute(ROUTE, Page, { exact: true });
   return {
-    name: 'Deck Agent', titleView: <span>Deck Agent</span>, icon: <span style={{ fontSize: 22, fontWeight: 700 }}>π</span>,
+    name: 'Deck Agent', titleView: <span>Deck Agent</span>, icon: <Logo size={24} />,
     content: <App compact />,
     onDismount() { dispose(); routerHook.removeRoute(ROUTE); },
   };

@@ -1,3 +1,4 @@
+import { Logo } from './Logo';
 import { useEffect, useRef, useState } from 'react';
 import { Focusable, GamepadButton } from '@decky/ui';
 import { act, actionPending, announce, clearDraft, flushDraft, materializeSession, NEW_SESSION_ID, once, pendingMessage, platform, refresh, request, sessionFeedback, setDraft, setPendingMessage, setSessionFeedback } from '../client';
@@ -8,6 +9,25 @@ import { Markdown } from './Markdown';
 import { useComposerLayout } from './useComposerLayout';
 import { conversationTurns, processLabel, type ConversationTurn } from './conversation-turns';
 
+const scenePresets = [
+  {
+    title: '帮我排查游戏问题或优化画面配置',
+    prompt: '请先识别这台 Steam Deck 上安装的游戏版本，结合日志和现有配置排查问题，或按我的目标给出画面和性能设置建议。需要改配置时，先说明改动和影响，等我确认后备份原配置再修改，并告诉我怎么验证和恢复。\n\n遇到的问题或想改善的地方（如闪退、画质、帧率或续航）：\n需要排查或优化的游戏是：',
+  },
+  {
+    title: '备份或恢复游戏存档',
+    prompt: '请帮我找到这台 Steam Deck 上的游戏存档。备份前先列出将备份的文件。恢复前先列出可用备份和恢复位置，等我确认后，先保护当前存档再恢复。如果可能与 Steam 云存档冲突，请先告诉我。完成后告诉我备份位置和结果。\n\n要做的操作（备份或恢复）：\n需要备份或恢复存档的游戏是：',
+  },
+  {
+    title: '按我的需求寻找并安装游戏 Mod',
+    prompt: '如果我描述的是想实现的效果，请帮我找合适的 Mod 或汉化包。如果我指定了 Mod，请直接检查对应的来源。先核对游戏版本、Steam Deck 兼容性、依赖和冲突，再说明要下载什么、会改哪些文件。等我确认后再安装，保留原文件，并告诉我怎么验证、停用或卸载。\n\n想实现的效果，或指定 Mod／汉化包的名称、链接或文件路径：\n需要安装 Mod 的游戏是：',
+  },
+  {
+    title: '在 GitHub 上寻找并安装 Decky 插件',
+    prompt: '请在 GitHub 的 decky-plugin 主题下，按我的需求找合适的 Decky 插件。如果我提供了仓库或本地安装包，请直接检查该来源。先说明插件用途、来源、版本和已知兼容情况，核对安装包，再让我在 Decky 的确认窗口里确认安装。装好后检查版本和加载状态。\n\n想要的插件功能，或指定的仓库链接／本地 ZIP 路径：',
+  },
+];
+
 function textOf(message: Message) {
   return typeof message.content === 'string' ? message.content : message.content?.filter(c => c.type === 'text').map(c => c.text || '').join('\n') || '';
 }
@@ -17,7 +37,7 @@ function MessageView({ message }: { message: Message }) {
   const tools = Array.isArray(message.content) ? message.content.filter(c => c.type === 'toolCall') : [];
   const text = textOf(message);
   return <div className={`da-message ${message.role === 'user' ? 'user' : 'assistant'}`}>
-    {message.role === 'assistant' && <span className="da-avatar">π</span>}<div className="da-message-body">{message.role === 'user' ? <p>{text}</p> : <Markdown text={text} />}
+    {message.role === 'assistant' && <Logo className="da-avatar" size={24} />}<div className="da-message-body">{message.role === 'user' ? <p>{text}</p> : <Markdown text={text} />}
       {tools.map((tool, i) => <ToolCall key={tool.id || i} tool={tool} />)}
       {message.errorMessage && <ErrorBox text={message.errorMessage} />}
       {Array.isArray(message.content) && message.content.some(c => c.type === 'image') && <span className="da-muted">[图像结果已保留在 Pi 会话中]</span>}
@@ -46,12 +66,25 @@ function RunningTool({ tool }: { tool: LiveTool }) {
   return <div className="da-tool"><Button onClick={() => setExpanded(v => !v)}><span className="da-tool-title"><code>{tool.name}</code><span>正在执行</span><span>{expanded ? '⌃' : '›'}</span></span></Button>{expanded && <><pre>{JSON.stringify(tool.args, null, 2)}</pre><pre>{tool.result?.content?.filter(c => c.type === 'text').map(c => c.text).join('\n') || '等待工具输出…'}</pre></>}</div>;
 }
 
-export function Composer({ session, draft, compact = false, openModel, error, voiceError }: {
-  session: Session; draft: string; compact?: boolean; openModel: () => void; error: (text: string) => void; voiceError: (text: string) => void;
+export function Composer({ session, draft, compact = false, presetFocus = 0, openModel, error, voiceError }: {
+  session: Session; draft: string; compact?: boolean; presetFocus?: number; openModel: () => void; error: (text: string) => void; voiceError: (text: string) => void;
 }) {
   const [supplement, setSupplement] = useState(false);
   const [more, setMore] = useState(false);
   const input = useComposerLayout(draft);
+  useEffect(() => {
+    const el = input.current;
+    const win = el?.ownerDocument.defaultView;
+    if (!presetFocus || !el || !win) return;
+    const frame = win.requestAnimationFrame(() => {
+      el.focus({ preventScroll: true });
+      const end = el.value.length;
+      el.setSelectionRange(end, end);
+      el.scrollTop = el.scrollHeight;
+      platform.keyboard(el);
+    });
+    return () => win.cancelAnimationFrame(frame);
+  }, [input, presetFocus]);
   const busy = ['running', 'waiting', 'starting'].includes(session.status);
   const hasText = Boolean(draft.trim());
   const sending = actionPending('send:' + session.id) || (session.id !== NEW_SESSION_ID && pendingMessage(session.id)?.failed === false && actionPending('send:' + NEW_SESSION_ID));
@@ -108,6 +141,7 @@ export function Conversation({ data, session, draft, menu, model, error, voiceEr
   const scroll = useRef<HTMLDivElement>(null);
   const nearEnd = useRef(true);
   const [showLatest, setShowLatest] = useState(false);
+  const [presetFocus, setPresetFocus] = useState(0);
   const active = data.active?.id === session.id ? data.active : null;
   const messages = active?.messages || [];
   const pending = pendingMessage(session.id);
@@ -140,7 +174,10 @@ export function Conversation({ data, session, draft, menu, model, error, voiceEr
       if (event.target !== event.currentTarget) return;
       if ((event.key === 'ArrowUp' || event.key === 'ArrowDown') && pageScroll(event.key === 'ArrowUp' ? -1 : 1)) { event.preventDefault(); event.stopPropagation(); }
     }} onScroll={() => { const e = scroll.current!; nearEnd.current = e.scrollHeight - e.scrollTop - e.clientHeight < 80; if (nearEnd.current) setShowLatest(false); }}>
-      {!active && session.id !== NEW_SESSION_ID ? <div className="da-empty"><Loading text="正在加载会话记录…" /><Button onClick={() => refresh(true)}>重新读取</Button></div> : messages.length ? turns.map(turn => <TurnView key={`${turn.key}:${turn.active ? 'active' : 'complete'}`} turn={turn} />) : !pending && <div className="da-empty"><span className="da-empty-mark">π</span><h1>今天，想做点什么？</h1><Focusable flow-children="grid" className="da-quick-prompts">{['检查设备状态和存储空间', '先查看 Downloads，给出整理建议', '分析最近的应用启动日志', '查看并配置 Pi 的 Skills、扩展和 MCP'].map(text => <Button key={text} onClick={() => setDraft(session.id, text)}>{text}</Button>)}</Focusable></div>}
+      {!active && session.id !== NEW_SESSION_ID ? <div className="da-empty"><Loading text="正在加载会话记录…" /><Button onClick={() => refresh(true)}>重新读取</Button></div> : messages.length ? turns.map(turn => <TurnView key={`${turn.key}:${turn.active ? 'active' : 'complete'}`} turn={turn} />) : !pending && <div className="da-empty"><Logo className="da-empty-mark" size={64} /><h1>今天，想做点什么？</h1><Focusable flow-children="grid" className="da-quick-prompts">{scenePresets.map(({ title, prompt }) => <Button key={title} onClick={() => {
+        setDraft(session.id, prompt);
+        setPresetFocus(count => count + 1);
+      }}>{title}</Button>)}</Focusable></div>}
       {pending && <div className={`da-message user da-message-pending ${pending.failed ? 'failed' : ''}`}><p>{pending.text}</p><small>{pending.failed ? '未发送 · 草稿已保留，可重试' : '正在发送…'}</small></div>}
       {active?.tools.map(tool => <RunningTool key={tool.id} tool={tool} />)}
       {Object.entries(active?.widgets || {}).map(([key, lines]) => lines.length > 0 && <pre key={key}>{lines.join('\n')}</pre>)}
@@ -148,7 +185,7 @@ export function Conversation({ data, session, draft, menu, model, error, voiceEr
     {showLatest && <div className="da-latest"><Button onClick={latest}>↓ 回到最新消息</Button></div>}
     {status && <div className={`da-task-feedback ${running || sending || stopping ? 'working' : ''}`} role="status">{running || sending || stopping ? <span className="da-spinner" aria-hidden="true" /> : <span aria-hidden="true">{session.status === 'waiting' ? '!' : session.status === 'error' || pending?.failed ? '!' : '✓'}</span>}<span>{status}</span></div>}
     {running && feedback.startsWith('已') && <p className="da-extension-status">{feedback}</p>}
-    {Object.entries(active?.statusEntries || {}).filter(([, value]) => value).map(([key, value]) => <p key={key} className="da-extension-status">{value}</p>)}<Composer session={session} draft={draft} openModel={model} error={error} voiceError={voiceError} /></>;
+    {Object.entries(active?.statusEntries || {}).filter(([, value]) => value).map(([key, value]) => <p key={key} className="da-extension-status">{value}</p>)}<Composer session={session} draft={draft} presetFocus={presetFocus} openModel={model} error={error} voiceError={voiceError} /></>;
 }
 
 export function ModelPicker({ session, close }: { session: Session; close: () => void }) {

@@ -10,16 +10,20 @@ export function useComposerLayout(draft: string) {
     const win = el.ownerDocument.defaultView!;
     const page = el.closest<HTMLElement>('.da-steam-page');
     const app = el.closest<HTMLElement>('.da-app');
+    const composer = el.closest<HTMLElement>('.da-composer')!;
     const available = page?.clientHeight || Math.min(win.visualViewport?.height || win.innerHeight, parseFloat(app?.style.maxHeight || '') || Infinity);
     const maximum = Math.max(60, Math.min(144, Math.floor(available * .4)));
+    const scrollTop = el.scrollTop;
+    // 先用单行布局的宽度检测折行，再按实际布局测量高度。
+    composer.removeAttribute('data-multiline');
     el.style.maxHeight = maximum + 'px';
     el.style.height = '0px';
+    composer.toggleAttribute('data-multiline', el.scrollHeight > el.clientHeight);
     el.style.height = Math.min(maximum, Math.max(38, el.scrollHeight)) + 'px';
-    el.style.overflowY = el.scrollHeight > maximum ? 'auto' : 'hidden';
-    if (el.ownerDocument.activeElement === el && el.selectionStart === el.selectionEnd && el.selectionEnd === el.value.length) el.scrollTop = el.scrollHeight;
+    const caretAtEnd = el.ownerDocument.activeElement === el && el.selectionStart === el.selectionEnd && el.selectionEnd === el.value.length;
+    el.scrollTop = caretAtEnd ? el.scrollHeight : scrollTop;
     const qam = el.closest<HTMLElement>('.da-qam');
-    const composer = el.closest<HTMLElement>('.da-composer');
-    if (qam && composer && app?.style.maxHeight) {
+    if (qam && app?.style.maxHeight) {
       const hidden = composer.getBoundingClientRect().bottom - qam.getBoundingClientRect().bottom;
       if (hidden > 0) qam.scrollTop += hidden + 6;
     }
@@ -31,6 +35,7 @@ export function useComposerLayout(draft: string) {
     const doc = el.ownerDocument, win = doc.defaultView!;
     const app = el.closest<HTMLElement>('.da-app')!;
     const page = el.closest<HTMLElement>('.da-steam-page');
+    const composer = el.closest<HTMLElement>('.da-composer')!;
     const composerWrap = el.closest<HTMLElement>('.da-composer-wrap');
     const savedTransform = composerWrap?.style.transform || '';
     const savedHeight = page?.style.height || '';
@@ -80,8 +85,21 @@ export function useComposerLayout(draft: string) {
       if (event.target === el) start();
       else if ((event.target as HTMLElement | null)?.closest?.('button,input,textarea,[role=button],[role=combobox]')) leaveInput(event);
     };
-    const observer = new win.ResizeObserver(() => { update(); resize(); });
-    observer.observe(page?.parentElement || doc.documentElement);
+    const host = page?.parentElement || doc.documentElement;
+    const actions = composer.querySelector<HTMLElement>('.da-composer-actions')!;
+    let composerWidth = composer.clientWidth;
+    let actionsWidth = actions.clientWidth;
+    const observer = new win.ResizeObserver(entries => {
+      const hostChanged = entries.some(entry => entry.target === host);
+      if (!hostChanged && composer.clientWidth === composerWidth && actions.clientWidth === actionsWidth) return;
+      composerWidth = composer.clientWidth;
+      actionsWidth = actions.clientWidth;
+      if (hostChanged) update();
+      resize();
+    });
+    observer.observe(host);
+    observer.observe(composer);
+    observer.observe(actions);
     doc.addEventListener('focusin', focus);
     doc.addEventListener('pointerdown', leaveInput, true);
     win.addEventListener('resize', update);

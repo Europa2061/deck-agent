@@ -206,3 +206,18 @@ export function useAgent() {
   } : data?.sessions.find(s => s.id === activeId);
   return { data, session, error, activeId, announcement, draft: session ? drafts.get(session.id) ?? session.draft ?? '' : '' };
 }
+
+
+export function installPlayerPlugin(ticket: string): Promise<void> {
+  return once('player-plugin:' + ticket, async () => {
+    platform.checkInstaller();
+    const prepared = await request<PreparedUpdate>('player_plugin_claim', { ticket });
+    try {
+      await platform.installUpdate(prepared);
+      announce('已打开 Decky 原生安装确认，完成后请核对插件版本。');
+    } catch (error) {
+      await request('player_plugin_failed', { ticket, error: String(error) });
+      throw error;
+    } finally { await refresh(); }
+  });
+}

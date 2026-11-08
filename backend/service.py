@@ -17,6 +17,8 @@ from .build_info import collect as build_metadata
 from .rpc import PiProcess
 from .storage import Storage, read_json, write_json
 from .session_state import is_user_interruption, message_view, is_abort_error
+from .workflows.common import Store as PlayerStore
+from .workflows import plugins as player_plugins
 from .voice import VoiceService
 from .updates import check_release, UpdateDownload
 
@@ -50,6 +52,7 @@ class AgentService:
         self.refresh_task = None
         self.tasks = set()
         self.closed = False
+        self.player_store = PlayerStore(home=home, data=data)
         self.update_download = UpdateDownload(data / "updates")
         self.update_lock = asyncio.Lock()
         self.voice = VoiceService(root, data / "voice", self.changed, self.voice_draft)
@@ -96,6 +99,12 @@ class AgentService:
         env = dict(os.environ)
         env["HOME"] = str(self.storage.home)
         env["PI_CODING_AGENT_DIR"] = str(agent_dir or self.storage.agent)
+        env["DECK_AGENT_DATA_DIR"] = str(self.storage.data)
+        env["DECK_AGENT_PLUGINS_DIR"] = str(self.root.parent)
+        # Decky 为冻结程序时 sys.executable 是 PluginLoader，不是可执行脚本的 Python。
+        embedded = bool(getattr(sys, "frozen", False)) or "python" not in Path(sys.executable).name.lower()
+        env["DECK_AGENT_PYTHON"] = (shutil.which("python3") or "/usr/bin/python3") if embedded else sys.executable
+        env["DECK_AGENT_EMBEDDED_PYTHON"] = "1" if embedded else "0"
         node_bin = Path(shutil.which("node")).parent if os.environ.get("DECK_AGENT_DEV") == "1" and sys.platform != "linux" and shutil.which("node") else self.root / "runtime/node/bin"
         env["PATH"] = str(node_bin) + os.pathsep + env.get("PATH", "/usr/local/bin:/usr/bin:/bin")
         # 向 Pi 传入产品提示，不剥离其工具或扩展能力。
@@ -171,6 +180,7 @@ class AgentService:
             item["unread"] = item.get("replyVersion", 0) > item.get("readVersion", 0)
             item["pending"] = list(self.ui_requests.get(item["id"], {}).values())
         return {
+            "pluginInstalls": player_plugins.pending(self.player_store),
             "newSessionDraft": self.storage.new_draft.get("draft", ""),
             "newSessionModel": {k: v for k, v in self.storage.new_draft.items() if k in ("provider", "model", "thinking")},
             "sessions": sessions, "preferences": self.storage.preferences,
@@ -220,6 +230,7 @@ class AgentService:
         command = self.pi_command() + ["--mode", "rpc", "--session", item["file"],
                                        "--append-system-prompt", str(self.root / "resources/system.md"),
                                        "--skill", str(self.root / "resources/skills"),
+                                       "--extension", str(self.root / "resources/extensions/player-tools.ts"),
                                        "--prompt-template", str(self.root / "resources/prompts")]
         if not Path(item["file"]).exists():
             defaults = read_json(self.storage.agent / "settings.json")
@@ -785,6 +796,23 @@ class AgentService:
                             raise ValueError("请选择已启用的命名模型。")
                     self.storage.preferences[key] = payload[key]
             self.storage.save_preferences()
+            await self.changed()
+            return None
+        if action == "player_plugin_claim":
+            def claim():
+                with self.player_store.lock():
+                    return player_plugins.claim(self.player_store, payload["ticket"])
+            return await asyncio.to_thread(claim)
+        if action in ("player_plugin_failed", "player_plugin_dismiss"):
+            with self.player_store.lock():
+                record = self.player_store.get(payload["ticket"])
+                if record.get("kind") != "plugin-install":
+                    raise ValueError("这不是插件安装请求。")
+                if action == "player_plugin_failed" and record["status"] == "prompted":
+                    record.update(status="failed", error=str(payload.get("error", "安装接口调用失败。"))[:500])
+                elif action == "player_plugin_dismiss" and record["status"] in ("queued", "failed"):
+                    record["status"] = "dismissed"
+                self.player_store.save(record)
             await self.changed()
             return None
         if action == "updates":

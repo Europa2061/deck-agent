@@ -4,7 +4,7 @@
 
 | Audience | Documents |
 | --- | --- |
-| Users | [Installation](installation.en.md) · [Permissions and privacy](privacy.en.md) · [Changelog](CHANGELOG.en.md) |
+| Users | [Installation](installation.en.md) · [Player workflows](player-workflows.en.md) · [Permissions and privacy](privacy.en.md) · [Changelog](CHANGELOG.en.md) |
 | Developers | [Development](development.en.md) · [Debugging](debugging.en.md) · [Device testing](device-test.en.md) · [Releasing](releasing.en.md) |
 | Contributors | [Contributing](CONTRIBUTING.en.md) · [Security](SECURITY.en.md) · [Third-party notices](THIRD_PARTY.en.md) |
 

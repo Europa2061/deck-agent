@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo.png" width="144" alt="Deck Agent logo">
+</p>
+
 # Deck Agent
 
 **在 Steam Deck 游戏模式里，通过文字或语音让 AI 帮你处理文件、运行命令和完成任务。**
@@ -6,8 +10,11 @@
 
 [English](README.en.md) · [安装与首次使用](docs/installation.md) · [权限与隐私](docs/privacy.md) · [开发与构建](docs/development.md) · [全部文档](docs/index.md)
 
+![Deck Agent 功能界面：聊天任务、Decky 侧栏、语音、会话、Skills 和模型配置](docs/assets/deck-agent-overview.png)
+
 ## 可以用来做什么
 
+- 排查游戏启动问题、备份存档、寻找和部署 Mod，以及发现并安装商店外 Decky 插件，见[内置玩家工具流程](docs/player-workflows.md)。
 - 整理指定目录中的文件：先让 AI 列出整理方案，确认后再操作。
 - 在测试目录里编写脚本、生成说明文档、查看命令结果。
 - 用语音输入任务，切换会话查看历史和执行进度。

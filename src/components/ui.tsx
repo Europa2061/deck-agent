@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { DialogButton, DropdownItem, Focusable, ModalRoot, TextField, ToggleField, showModal, type FooterLegendProps, type FocusableProps } from '@decky/ui';
+import { DialogButton, DropdownItem, Focusable, ModalRoot, TextField, ToggleField, showModal, type DialogButtonProps, type FooterLegendProps, type FocusableProps } from '@decky/ui';
 import { styles } from '../styles';
 
 const NativeContext = createContext(false);
@@ -12,7 +12,7 @@ export function Loading({ text = '正在加载…' }: { text?: string }) {
   return <div className="da-loading" role="status"><span className="da-spinner" aria-hidden="true" />{text}</div>;
 }
 
-type ButtonProps = FooterLegendProps & {
+type ButtonProps = FooterLegendProps & Pick<DialogButtonProps, 'onPointerDown' | 'onPointerUp' | 'onPointerCancel'> & {
   children: ReactNode; onClick?: () => void | Promise<unknown>; variant?: string; disabled?: boolean;
   title?: string; className?: string; expanded?: boolean; popup?: boolean; pressed?: boolean; current?: boolean; loading?: boolean;
   busyText?: string; successText?: string;

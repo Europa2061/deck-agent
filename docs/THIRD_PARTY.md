@@ -15,3 +15,5 @@
 应用自有源码使用根目录 MIT 许可证。npm 运行依赖的许可证随各包保留；安装包不重新许可这些依赖。
 
 - Markdown 显示：使用 [react-markdown](https://github.com/remarkjs/react-markdown) 10.1.0 和 [remark-gfm](https://github.com/remarkjs/remark-gfm) 4.0.1；MIT 及依赖许可证保留在 `licenses/markdown-dependencies-LICENSES.txt`。
+
+- Ludusavi 0.31.0：按需从 [官方 Release](https://github.com/mtkennerly/ludusavi/releases/tag/v0.31.0) 下载 Linux x64 运行包，不随插件分发；MIT。固定校验运行包及官方 legal.zip 的 SHA-256，许可归档随依赖保存在插件数据目录。

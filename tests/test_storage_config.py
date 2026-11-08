@@ -4,7 +4,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from backend.service import AgentService
 from backend.storage import Storage, read_json, write_json
@@ -152,3 +152,18 @@ class ConfigTests(unittest.IsolatedAsyncioTestCase):
         self.service.messages[item["id"]] = [{"role": "system", "content": "internal"}, {"role": "user", "content": "hello"}]
         snap = await self.service.snapshot(item["id"])
         self.assertEqual(snap["active"]["messages"], [{"role": "user", "content": "hello"}])
+
+
+    async def test_frozen_decky_selects_system_python_for_real_player_helper(self):
+        import sys, subprocess, shutil
+        actual_python = sys.executable
+        actual_which = shutil.which
+        def which(name):
+            return actual_python if name == 'python3' else actual_which(name)
+        with patch('backend.service.sys.executable', '/tmp/PluginLoader'), patch('backend.service.sys.frozen', True, create=True), patch('backend.service.shutil.which', side_effect=which):
+            env = self.service.environment()
+        self.assertEqual(env['DECK_AGENT_PYTHON'], actual_python)
+        result = subprocess.run([env['DECK_AGENT_PYTHON'], str(ROOT / 'backend/player_tools.py')],
+            input=json.dumps({'tool': 'deck_games', 'params': {'action': 'list'}}), text=True, capture_output=True, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(json.loads(result.stdout)['ok'])

@@ -1,6 +1,6 @@
 {
   "name": "deck-agent",
-  "version": "0.7.2",
+  "version": "0.8.5",
   "private": true,
   "type": "module",
   "description": "Steam Deck 游戏模式中的通用 Pi Agent",

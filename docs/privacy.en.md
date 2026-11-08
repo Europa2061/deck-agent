@@ -40,3 +40,12 @@ Recordings are removed after transcription or cancellation; crashes may leave te
 Plugin logs are designed to exclude full conversations, command arguments, tool output, and speech content, and to redact registered secrets. Third-party errors/process output and diagnostics can still expose private details; automatic redaction is not comprehensive.
 
 Before filing an Issue, inspect logs, recordings, and screenshots. Hide keys, usernames, private paths, hostnames, IPs, private provider endpoints, and conversation content. Do not upload authentication files or whole settings/data directories. Revoke exposed credentials with the provider before reporting a leak.
+
+
+## Built-in player tools
+
+Operation records, Mod ownership, original-file backups, plugin requests and the on-demand Ludusavi installation are stored in Decky's `deck-agent/player-tools/` data directory. Backups may contain personal data; tool results read by the model enter your configured provider's context.
+
+Mod web discovery sends search terms to Bing; repository/release discovery uses GitHub. Author pages and downloads connect to their respective hosts. Search terms should contain game requirements rather than private logs or credentials.
+
+These dedicated tools request GUI confirmation before configuration changes, restores and Mod mutations. Plugin installation uses Decky's native confirmation. This is not a universal approval gate or sandbox for Pi's native tools or third-party extensions.

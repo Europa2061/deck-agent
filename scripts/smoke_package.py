@@ -59,7 +59,7 @@ async def main():
         ai = (plugin_root / "runtime/node_modules/@earendil-works/pi-ai/dist/index.js").as_uri()
         extensions = service.storage.agent / "extensions"
         extensions.mkdir()
-        (extensions / "test.js").write_text("export default async function(pi){const {fauxProvider,fauxAssistantMessage,fauxToolCall}=await import(" + json.dumps(ai) + ");const fake=fauxProvider({provider:'package-test',models:[{id:'test'}],tokensPerSecond:10000});fake.setResponses([fauxAssistantMessage(fauxToolCall('write',{path:'proof.txt',content:'package-ok'}),{stopReason:'toolUse'}),fauxAssistantMessage('done')]);pi.registerProvider(fake.provider);}")
+        (extensions / "test.js").write_text("export default async function(pi){const {fauxProvider,fauxAssistantMessage,fauxToolCall}=await import(" + json.dumps(ai) + ");const fake=fauxProvider({provider:'package-test',models:[{id:'test'}],tokensPerSecond:10000});fake.setResponses([fauxAssistantMessage(fauxToolCall('deck_games',{action:'list'}),{stopReason:'toolUse'}),fauxAssistantMessage(fauxToolCall('write',{path:'proof.txt',content:'package-ok'}),{stopReason:'toolUse'}),fauxAssistantMessage('done')]);pi.registerProvider(fake.provider);}")
         (service.storage.agent / "settings.json").write_text(json.dumps({"defaultProvider": "package-test", "defaultModel": "test"}))
         try:
             created = await plugin.request("create_session", {})
@@ -75,7 +75,13 @@ async def main():
                         raise RuntimeError(state.get("error", state["status"]))
                     await asyncio.sleep(0.05)
             assert proof.read_text() == "package-ok"
-            print("干净安装包检查通过：Node、npm、Pi、STT、原生工具执行与退出清理。", flush=True)
+            await service.reconcile(session_id)
+            result = next(message for message in service.messages[session_id] if message.get("role") == "toolResult" and message.get("toolName") == "deck_games")
+            assert not result.get("isError"), result
+            commands = await plugin.request("commands", {"sessionId": session_id})
+            names = {command["name"] for command in commands["value"]["commands"]}
+            assert {"skill:game-care", "skill:save-care", "skill:mod-care", "skill:decky-plugins"}.issubset(names), names
+            print("干净安装包检查通过：Node、npm、Pi、STT、原生/玩家工具执行、四个 Skills 与退出清理。", flush=True)
         finally:
             await plugin._unload()
 
